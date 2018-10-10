@@ -51,10 +51,17 @@ class FTPClient {
 
                     DataInputStream inData = new DataInputStream(new BufferedInputStream(dataSocket.getInputStream()));
                     while (notEnd) {
-                        //modifiedSentence = inData.readUTF();
+                        //prints out the list of files available from the server.
+                        modifiedSentence = inData.readUTF();
                         //........................................
                         //........................................
-                        ();
+
+                        String[] list = modifiedSentence.split(" ");
+
+                        for (String s: list
+                             ) {
+                            System.out.println(s);
+                        }
 
                     }
 

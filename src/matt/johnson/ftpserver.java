@@ -1,7 +1,6 @@
 import java.io.*;
 import java.net.*;
 import java.util.*;
-import java.*;
 //.................import??
 //.................
 
@@ -46,9 +45,12 @@ public class ftpserver {
 
                 String fileNames = "";
 
-                for (File f : fileList) {
-                    if (f.exists()) {
-                        fileNames = fileNames + f.getName() + " ";
+                if (fileList != null) {
+
+                    for (File f : fileList) {
+                        if (f.exists()) {
+                            fileNames = fileNames + f.getName() + " ";
+                        }
                     }
                 }
 
@@ -83,7 +85,11 @@ public class ftpserver {
                 System.out.println("Data socket closed");
             }
 
-            if (clientCommand.equals(""))
+            if (clientCommand.equals("stor")){
+                //saves the file to the current directory.
+
+
+            }
         }
 
     }
