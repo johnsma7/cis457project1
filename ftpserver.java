@@ -91,6 +91,7 @@ class ClientHandler extends Thread {
             Socket dataSocket = new Socket(connectionSocket.getInetAddress(), port);
             DataOutputStream dataOutToClient = new DataOutputStream(dataSocket.getOutputStream());
 
+            byte[] b;
             String fileName = inFromClient.readLine();
             boolean exists = false;
             int byteSize = 0;
@@ -98,12 +99,17 @@ class ClientHandler extends Thread {
                 if (fileList[i].getName() == fileName) {
                     exists = true;
                     byteSize = fileList[i].length();
+                    b = new byte[byteSize];
                 }
 
             }
 
-            if (exists) {
+            if (exists && byteSize > 0) {
+                //if there is a file...
                 FileInputStream fs = new FileInputStream(fileName);
+                fs.read(b);
+
+                dataOutToClient.write(b, 0, byteSize);
 
             } else {
                 dataOutToClient.writeBytes("File doesn't exist");
