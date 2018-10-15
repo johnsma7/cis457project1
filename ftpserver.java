@@ -107,9 +107,7 @@ class ClientHandler extends Thread {
             if (exists && byteSize > 0) {
                 //if there is a file...
                 FileInputStream fs = new FileInputStream(fileName);
-                fs.read(b);
-
-                dataOutToClient.write(b, 0, byteSize);
+                sendBytes(fs, dataOutToClient);
 
             } else {
                 dataOutToClient.writeBytes("File doesn't exist");
@@ -121,9 +119,20 @@ class ClientHandler extends Thread {
 
         if (clientCommand.equals("stor")){
             //saves the file to the current directory.
+            Socket dataSocket = new Socket(connectionSocket.getInetAddress(), port);
+            DataInputStream dataFromClient = new DataInputStream(dataSocket.getInputStream());
 
+            byte[] b = new byte[1024];
+            String fileName = tokens.nextToken(); // This assumes we send the file name via the command line right after stor:
+            FileOutputStream out = new FileOutputStream(fileName);
 
-            }
+            dataFromClient.read(b);
+            out.write(b);
+            out.close();
+            dataSocket.close();
+            outToClient.writeBytes("File stored.");
+
+        }
 	    if (clientCommand.equals("quit:")){
 		    System.out.println("Closing the server...");
 		    break;
