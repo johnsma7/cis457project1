@@ -8,16 +8,7 @@ Some code found in this class was adapted form code found on stackoverflow.com
  */
 public class ftpserver {
     public static void main(String args[]) throws Exception {
-		int port = 12000;
-		int port1 = 12002;
-
-		String fromClient;
-		String clientCommand;
-		byte[] data;
-		File curDir = new File(".");
-		File[] fileList = curDir.listFiles();
-
-
+        int port = 12000;
 
 		while (true) {
 
@@ -36,6 +27,7 @@ class ClientHandler extends Thread {
 	private Socket client;
 	private Scanner input;
 	private PrintWriter output;
+	private ServerSocket s;
 
 	public ClientHandler(Socket socket)
 	{
@@ -47,8 +39,14 @@ class ClientHandler extends Thread {
 	{
 		String received;
 		String frstln;
+        int port = 12000;
+        int port1 = 12002;
 
-		Socket connectionSocket = welcomeSocket.accept();
+        String fromClient;
+        String clientCommand;
+        byte[] data;
+        File curDir = new File(".");
+        File[] fileList = curDir.listFiles();
 
         DataOutputStream outToClient = new DataOutputStream(connectionSocket.getOutputStream());
         BufferedReader inFromClient = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
@@ -98,7 +96,7 @@ class ClientHandler extends Thread {
             for (int i = 0; i < fileList.length; i++) {
                 if (fileList[i].getName() == fileName) {
                     exists = true;
-                    byteSize = fileList[i].length();
+                    byteSize = (int) fileList[i].length();
                     b = new byte[byteSize];
                 }
 
