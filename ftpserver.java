@@ -1,8 +1,6 @@
 import java.io.*;
 import java.net.*;
 import java.util.*;
-//.................import??
-//.................
 
 /*
 Some code found in this class was adapted form code found on stackoverflow.com
@@ -11,7 +9,7 @@ Some code found in this class was adapted form code found on stackoverflow.com
 public class ftpserver {
     public static void main(String args[]) throws Exception {
         int port = 12000;
-
+	int port1 = 12002;
 
         String fromClient;
         String clientCommand;
@@ -38,8 +36,9 @@ public class ftpserver {
             clientCommand = tokens.nextToken();
 
             if (clientCommand.equals("list:")) {
-
+		System.out.println(port);
                 Socket dataSocket = new Socket(connectionSocket.getInetAddress(), port);
+
                 DataOutputStream dataOutToClient = new DataOutputStream(dataSocket.getOutputStream());
                 //list everything in the current directory and send to client
 
@@ -50,9 +49,13 @@ public class ftpserver {
                     for (File f : fileList) {
                         if (f.exists()) {
                             fileNames = fileNames + f.getName() + " ";
+				System.out.println(f.getName());
                         }
                     }
                 }
+		else{
+			System.out.println("file list null");
+		}
 
                 dataOutToClient.writeBytes(fileNames);
 
@@ -102,5 +105,17 @@ public class ftpserver {
             data.write(buffer, 0, bytes);
         }
     }
-
 }
+
+
+
+
+
+
+
+
+	//	BufferedReader inFromServer = new BufferedReader(new InputStreamReader(ControlSocket.getInputStream()));
+                sentence = inFromUser.readLine();
+
+
+
