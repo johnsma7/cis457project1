@@ -8,89 +8,113 @@ Some code found in this class was adapted form code found on stackoverflow.com
  */
 public class ftpserver {
     public static void main(String args[]) throws Exception {
-        int port = 12000;
-	int port1 = 12002;
+		int port = 12000;
+		int port1 = 12002;
 
-        String fromClient;
-        String clientCommand;
-        byte[] data;
-        File curDir = new File(".");
-        File[] fileList = curDir.listFiles();
-
-        ServerSocket welcomeSocket = new ServerSocket(port);
-        String frstln;
-
-        while (true) {
+		String fromClient;
+		String clientCommand;
+		byte[] data;
+		File curDir = new File(".");
+		File[] fileList = curDir.listFiles();
 
 
-            Socket connectionSocket = welcomeSocket.accept();
 
-            DataOutputStream outToClient = new DataOutputStream(connectionSocket.getOutputStream());
-            BufferedReader inFromClient = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
+		while (true) {
 
-            fromClient = inFromClient.readLine();
+			ServerSocket welcomeSocket = new ServerSocket(port);
+
+
+			ClientHandler client = new ClientHandler(welcomeSocket);
+			client.run();
+
+		}
+	}
+}
+
+class ClientHandler extends Thread {
+
+	private Socket client;
+	private Scanner input;
+	private PrintWriter output;
+
+	public ClientHandler(Socket socket)
+	{
+		//Set up reference to associated socket...
+		client = socket;
+	}
+
+	public void run()
+	{
+		String received;
+		String frstln;
+
+		Socket connectionSocket = welcomeSocket.accept();
+
+        DataOutputStream outToClient = new DataOutputStream(connectionSocket.getOutputStream());
+        BufferedReader inFromClient = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
+
+        fromClient = inFromClient.readLine();
 
             StringTokenizer tokens = new StringTokenizer(fromClient);
             frstln = tokens.nextToken();
             port = Integer.parseInt(frstln);
             clientCommand = tokens.nextToken();
-	    System.out.println("client command" + clientCommand);
 
-            if (clientCommand.equals("list:")) {
-		System.out.println(port);
-                Socket dataSocket = new Socket(connectionSocket.getInetAddress(), port);
+        if (clientCommand.equals("list:")) {
+		    System.out.println(port);
+            Socket dataSocket = new Socket(connectionSocket.getInetAddress(), port);
 
-                DataOutputStream dataOutToClient = new DataOutputStream(dataSocket.getOutputStream());
-                //list everything in the current directory and send to client
+			DataOutputStream dataOutToClient = new DataOutputStream(dataSocket.getOutputStream());
+			//list everything in the current directory and send to client
 
-                String fileNames = "";
+            String fileNames = "";
 
-                if (fileList != null) {
+            if (fileList != null) {
 
-                    for (File f : fileList) {
-                        if (f.exists()) {
-                            fileNames = fileNames + f.getName() + " ";
-				System.out.println(f.getName());
-                        }
+                for (File f : fileList) {
+                    if (f.exists()) {
+                        fileNames = fileNames + f.getName() + " ";
+			            System.out.println(f.getName());
                     }
                 }
-		else{
-			System.out.println("file list null");
+            } else {
+			    System.out.println("file list null");
+            }
+
+            dataOutToClient.writeBytes(fileNames);
+
+            dataSocket.close();
+            System.out.println("Data Socket closed");
 		}
 
-                dataOutToClient.writeBytes(fileNames);
+        if (clientCommand.equals("retr:")) {
+            Socket dataSocket = new Socket(connectionSocket.getInetAddress(), port);
+            DataOutputStream dataOutToClient = new DataOutputStream(dataSocket.getOutputStream());
 
-                dataSocket.close();
-                System.out.println("Data Socket closed");
-            }
-
-            //......................
-
-            if (clientCommand.equals("retr:")) {
-                Socket dataSocket = new Socket(connectionSocket.getInetAddress(), port);
-                DataOutputStream dataOutToClient = new DataOutputStream(dataSocket.getOutputStream());
-
-                String fileName = inFromClient.readLine();
-                boolean exists = false;
-
-                for (int i = 0; i < fileList.length; i++) {
-                    if (fileList[i].getName() == fileName)
-                        exists = true;
+            String fileName = inFromClient.readLine();
+            boolean exists = false;
+            int byteSize = 0;
+            for (int i = 0; i < fileList.length; i++) {
+                if (fileList[i].getName() == fileName) {
+                    exists = true;
+                    byteSize = fileList[i].length();
                 }
 
-                if (exists) {
-                    FileInputStream fs = new FileInputStream(fileName);
-                    sendBytes(fs, dataOutToClient);
-                } else {
-                    dataOutToClient.writeBytes("File doesn't exist");
-                }
-
-                dataSocket.close();
-                System.out.println("Data socket closed");
             }
 
-            if (clientCommand.equals("stor")){
-                //saves the file to the current directory.
+            if (exists) {
+                FileInputStream fs = new FileInputStream(fileName);
+
+            } else {
+                dataOutToClient.writeBytes("File doesn't exist");
+            }
+
+            dataSocket.close();
+            System.out.println("Data socket closed");
+        }
+
+        if (clientCommand.equals("stor")){
+            //saves the file to the current directory.
 
 
             }
@@ -98,10 +122,8 @@ public class ftpserver {
 		    System.out.println("Closing the server...");
 		    break;
 	    }
-        }
-	welcomeSocket.close();
-
-    }
+	    welcomeSocket.close();
+	}
 
     private static void sendBytes(FileInputStream fs, DataOutputStream data) throws Exception {
         byte[] buffer = new byte[1024];
@@ -111,7 +133,11 @@ public class ftpserver {
             data.write(buffer, 0, bytes);
         }
     }
+
 }
+
+
+
 
 
 
