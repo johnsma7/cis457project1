@@ -19,14 +19,17 @@ class FTPClient {
 	int count=2;
 
 
-
+	System.out.println("Please type: connect <server name> <port number>");
         BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
         sentence = inFromUser.readLine();
         StringTokenizer tokens = new StringTokenizer(sentence);
-	System.out.println("Hello");
 
         if (sentence.startsWith("connect")) {
-
+		if(tokens.countTokens() < 2){
+			System.out.println("Improper format");
+			throw new NoSuchElementException();
+			
+		}
             String serverName = tokens.nextToken(); // pass the connect command
             serverName = tokens.nextToken();
             port1 = Integer.parseInt(tokens.nextToken());
@@ -34,7 +37,7 @@ class FTPClient {
             System.out.println("You are connected to " + serverName);
 
             Socket ControlSocket = new Socket("127.0.0.1", 12000);//was serverName, port1
-
+	
             while (isOpen && clientgo) {
 
                 DataOutputStream outToServer =
@@ -48,14 +51,13 @@ class FTPClient {
 
                     port = port + count;
                     outToServer.writeBytes(port + " " + sentence + " " + '\n');
-		System.out.println(port);
+		System.out.println(sentence+ "hello world");
                     ServerSocket welcomeData = new ServerSocket(port);
                     Socket dataSocket = welcomeData.accept();
 
                 //    DataInputStream inData = new DataInputStream(new BufferedInputStream(dataSocket.getInputStream()));
                    BufferedReader inData = new BufferedReader(new InputStreamReader(dataSocket.getInputStream()));
 		    while (notEnd) {//notEnd
-			    System.out.println("random");
                         //prints out the list of files available from the server.
                         modifiedSentence = inData.readLine();//readUTF
 			System.out.println(modifiedSentence);
@@ -80,12 +82,19 @@ class FTPClient {
                 }
 		else if(sentence.startsWith("stor: ")){
 		}
-		else if(sentence.startsWith("quit: ")){
+		else if(sentence.startsWith("quit:")){
+			outToServer.writeBytes(port + " " +sentence + " " + '\n');
+			System.out.println("Closing the server...");
+			isOpen = false;
 		}
 		else{
 			System.out.println("\nNot a valid command\nWhat would you like to do next: \n list: || retr: file.txt || stor: file.txt || quit: ");
 		}
             }
+	    ControlSocket.close();
         }
+	else{
+		System.out.println("Improper input");
+	}
     }
 }

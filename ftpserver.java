@@ -34,6 +34,7 @@ public class ftpserver {
             frstln = tokens.nextToken();
             port = Integer.parseInt(frstln);
             clientCommand = tokens.nextToken();
+	    System.out.println("client command" + clientCommand);
 
             if (clientCommand.equals("list:")) {
 		System.out.println(port);
@@ -93,7 +94,12 @@ public class ftpserver {
 
 
             }
+	    if (clientCommand.equals("quit:")){
+		    System.out.println("Closing the server...");
+		    break;
+	    }
         }
+	welcomeSocket.close();
 
     }
 
@@ -106,16 +112,6 @@ public class ftpserver {
         }
     }
 }
-
-
-
-
-
-
-
-
-	//	BufferedReader inFromServer = new BufferedReader(new InputStreamReader(ControlSocket.getInputStream()));
-                sentence = inFromUser.readLine();
 
 
 
