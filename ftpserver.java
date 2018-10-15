@@ -48,8 +48,8 @@ class ClientHandler extends Thread {
         File curDir = new File(".");
         File[] fileList = curDir.listFiles();
 
-        DataOutputStream outToClient = new DataOutputStream(connectionSocket.getOutputStream());
-        BufferedReader inFromClient = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
+        DataOutputStream outToClient = new DataOutputStream(client.getOutputStream());
+        BufferedReader inFromClient = new BufferedReader(new InputStreamReader(client.getInputStream()));
 
         fromClient = inFromClient.readLine();
 
@@ -60,7 +60,7 @@ class ClientHandler extends Thread {
 
         if (clientCommand.equals("list:")) {
 		    System.out.println(port);
-            Socket dataSocket = new Socket(connectionSocket.getInetAddress(), port);
+            Socket dataSocket = new Socket(client.getInetAddress(), port);
 
 			DataOutputStream dataOutToClient = new DataOutputStream(dataSocket.getOutputStream());
 			//list everything in the current directory and send to client
@@ -86,7 +86,7 @@ class ClientHandler extends Thread {
 		}
 
         if (clientCommand.equals("retr:")) {
-            Socket dataSocket = new Socket(connectionSocket.getInetAddress(), port);
+            Socket dataSocket = new Socket(client.getInetAddress(), port);
             DataOutputStream dataOutToClient = new DataOutputStream(dataSocket.getOutputStream());
 
             byte[] b;
@@ -117,7 +117,7 @@ class ClientHandler extends Thread {
 
         if (clientCommand.equals("stor")){
             //saves the file to the current directory.
-            Socket dataSocket = new Socket(connectionSocket.getInetAddress(), port);
+            Socket dataSocket = new Socket(client.getInetAddress(), port);
             DataInputStream dataFromClient = new DataInputStream(dataSocket.getInputStream());
 
             byte[] b = new byte[1024];
@@ -135,7 +135,7 @@ class ClientHandler extends Thread {
 		    System.out.println("Closing the server...");
 		    break;
 	    }
-	    welcomeSocket.close();
+	    client.close();
 	}
 
     private static void sendBytes(FileInputStream fs, DataOutputStream data) throws Exception {
