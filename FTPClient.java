@@ -40,7 +40,7 @@ class FTPClient {
             Socket ControlSocket = new Socket("127.0.0.1", 12000);//was serverName, port1
 
             while (isOpen && clientgo) {
-
+		System.out.println("loop top");
                 DataOutputStream outToServer =
                         new DataOutputStream(ControlSocket.getOutputStream());
 
@@ -55,6 +55,7 @@ class FTPClient {
 		            System.out.println(sentence+ "hello world");
                     ServerSocket welcomeData = new ServerSocket(port);
                     Socket dataSocket = welcomeData.accept();
+		    System.out.println("fkdjbvbga");
 
                 //    DataInputStream inData = new DataInputStream(new BufferedInputStream(dataSocket.getInputStream()));
                    BufferedReader inData = new BufferedReader(new InputStreamReader(dataSocket.getInputStream()));
@@ -80,6 +81,18 @@ class FTPClient {
 
                 } else if (sentence.startsWith("retr: ")) {
                     //If the user wants to retrieve a file from the server.
+			port = port +count; 
+			outToServer.writeBytes(port + " " + sentence + " " +'\n');
+			ServerSocket welcomeData = new ServerSocket(port);
+			Socket dataSocket = welcomeData.accept();
+
+			BufferedReader inData = new BufferedReader(new InputStreamReader(dataSocket.getInputStream()));
+			
+
+
+
+
+
 
                 } else if (sentence.startsWith("stor: ")) {
                     //If the user wants to store a file on the server
