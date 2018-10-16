@@ -25,16 +25,20 @@ class FTPClient {
 
 
         BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
-        sentence = inFromUser.readLine();
+        System.out.println("Enter connect <server name> <port number>");
+	sentence = inFromUser.readLine();
         StringTokenizer tokens = new StringTokenizer(sentence);
-        System.out.println("Hello");
-
         if (sentence.startsWith("connect")) {
             if(tokens.countTokens() < 2){
                 System.out.println("Improper format");
                 throw new NoSuchElementException();
-
             }
+	    System.out.println("Choose from the following commands:");
+	    System.out.println("list: displays files in the current server directory");
+	    System.out.println("retr: <filename.txt> retrieves the file if it is in the current server directory");
+	    System.out.println("stor: <filename.txt> passes the filename and stores it on the server side");
+	    System.out.println("quit: closes the client connection");
+
             String serverName = tokens.nextToken();
             serverName = tokens.nextToken();// pass the connect command
             port1 = Integer.parseInt(tokens.nextToken());
@@ -42,23 +46,18 @@ class FTPClient {
             System.out.println("You are connected to " + serverName);
 
             while (isOpen && clientgo) {
-                System.out.println("loop top");// Debugging line, remove
                 DataOutputStream outToServer = new DataOutputStream(ControlSocket.getOutputStream());
 
-                //DataInputStream inFromServer = new DataInputStream(new BufferedInputStream(ControlSocket.getInputStream()));
                 BufferedReader inFromServer = new BufferedReader(new InputStreamReader(ControlSocket.getInputStream()));
                 sentence = inFromUser.readLine();
 
                 if (sentence.equals("list: ")) {
 
-                    port = port + dataAdd;
                     outToServer.writeBytes(port + " " + sentence + " " + '\n');
-                    System.out.println(sentence+ "hello world");//Debugging line, remove later
+                 
                     ServerSocket welcomeData = new ServerSocket(port);
                     Socket dataSocket = welcomeData.accept();
-                    System.out.println("fkdjbvbga");//Debugging line, remove later
-
-                    //    DataInputStream inData = new DataInputStream(new BufferedInputStream(dataSocket.getInputStream()));
+            
                     BufferedReader inData = new BufferedReader(new InputStreamReader(dataSocket.getInputStream()));
 
                     //prints out the list of files available from the server.

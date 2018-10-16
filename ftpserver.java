@@ -22,13 +22,10 @@ public class ftpserver {
 
         while (true) {
 
-            //	ServerSocket welcomeSocket = new ServerSocket(port);
-            System.out.println("loop top");
             Socket clientSocket = welcomeSocket.accept();
 
-            count = count + 2;
-            ClientHandler client = new ClientHandler(clientSocket, (port + count));
-            client.run();
+            ClientHandler client = new ClientHandler(clientSocket);
+            client.start();
         }
     }
 }
@@ -49,11 +46,10 @@ class ClientHandler extends Thread {
     private String fromClient;
     private int dataPort;
 
-    public ClientHandler(Socket socket, int port)
+    public ClientHandler(Socket socket)
     {
         //Set up reference to associated socket...
         client = socket;
-        dataPort = port;
     }
 
     public void run()
@@ -78,7 +74,6 @@ class ClientHandler extends Thread {
                 System.out.println("Unable to set up port!");
             }
             try {
-                //outToClient.writeBytes("" + dataPort);
                 fromClient = inFromClient.readLine();
             } catch (IOException ioEx) {
                 System.out.println("Unable to set up port!");
@@ -88,11 +83,8 @@ class ClientHandler extends Thread {
             frstln = tokens.nextToken();
             port = Integer.parseInt(frstln);
             clientCommand = tokens.nextToken();
-            System.out.println(clientCommand);//Debugging line remove later
 
             while (true) {
-
-                System.out.println(clientCommand);//Debugging line remove later
 
                 if (clientCommand.equals("list:")) {
                     try {
@@ -123,12 +115,12 @@ class ClientHandler extends Thread {
                     try {
                         dataOutToClient.writeBytes(fileNames);
                     } catch (IOException ioEx) {
-                        System.out.println("Unable to set up port!126");
+                        System.out.println("Unable to set up port!");
                     }
                     try {
                         dataSocket.close();
                     } catch (IOException ioEx) {
-                        System.out.println("Unable to set up port!131");
+                        System.out.println("Unable to set up port!");
                     }
 
                     System.out.println("Data Socket closed");
@@ -156,12 +148,17 @@ class ClientHandler extends Thread {
                         System.out.println("All ok?"); //Debugging line
                         File f = new File(fileName);
                         input = new Scanner(f);
+			try{
                         String fileLine = input.nextLine();
 
                         while(fileLine != null) {
                             dataOutToClient.writeBytes(fileLine);
                             fileLine = input.nextLine();
                         }
+		    }
+			catch (NoSuchElementException ioE){
+				dataOutToClient.writeBytes("eof");
+			}
 
                         dataOutToClient.writeBytes("eof");
                     } else {
@@ -223,8 +220,8 @@ class ClientHandler extends Thread {
                     }
                 }
                 if (clientCommand.equals("quit:")) {
-                    System.out.println("Closing the server...");
-                    System.exit(1);
+                    System.out.println("disconnecting client...");
+           
 
 
                     try {
