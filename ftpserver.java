@@ -58,8 +58,6 @@ class ClientHandler extends Thread {
 
     public void run()
     {
-
-        try {
             String received;
             String frstln;
             int port = 12000;
@@ -92,24 +90,20 @@ class ClientHandler extends Thread {
             clientCommand = tokens.nextToken();
             System.out.println(clientCommand);//Debugging line remove later
 
-
-
             while (true) {
 
                 System.out.println(clientCommand);//Debugging line remove later
 
-
                 if (clientCommand.equals("list:")) {
                     try {
-                        outToClient.writeBytes("" + port);
                         dataSocket = new Socket(client.getInetAddress(), port);
                     } catch (IOException ioEx) {
-                        System.out.println("Unable to set up port!");
+                        System.out.println("Unable to set up port!101");
                     }
                     try {
                         dataOutToClient = new DataOutputStream(dataSocket.getOutputStream());
                     } catch (IOException ioEx) {
-                        System.out.println("Unable to set up port!");
+                        System.out.println("Unable to set up port!106");
                     }
                     //list everything in the current directory and send to client
 
@@ -129,34 +123,37 @@ class ClientHandler extends Thread {
                     try {
                         dataOutToClient.writeBytes(fileNames);
                     } catch (IOException ioEx) {
-                        System.out.println("Unable to set up port!");
+                        System.out.println("Unable to set up port!126");
                     }
                     try {
                         dataSocket.close();
                     } catch (IOException ioEx) {
-                        System.out.println("Unable to set up port!");
+                        System.out.println("Unable to set up port!131");
                     }
 
                     System.out.println("Data Socket closed");
                 }
 
                 if (clientCommand.equals("retr:")) {
-
+                    try{
+                        System.out.println("Made it this far...");
                     dataSocket = new Socket(client.getInetAddress(), port);
                     DataOutputStream dataOutToClient = new DataOutputStream(dataSocket.getOutputStream());
                     BufferedInputStream dataInFromClient = new BufferedInputStream(dataSocket.getInputStream());
 
-                    String fileName = inFromClient.readLine();
+                    String fileName = tokens.nextToken();
                     Boolean exists = false;
 
                     for (File f : fileList){
                         if (f.getName().equals(fileName)){
                             exists = true;
+                            System.out.println("File found!");
                         }
                     }
 
                     if (exists){
                         outToClient.writeBytes("200 OK");
+                        System.out.println("All ok?"); //Debugging line
                         File f = new File(fileName);
                         input = new Scanner(f);
                         String fileLine = input.nextLine();
@@ -169,9 +166,13 @@ class ClientHandler extends Thread {
                         dataOutToClient.writeBytes("eof");
                     } else {
                         outToClient.writeBytes("550");
+                        System.out.println("Oh dear...");//debugging line
                     }
 
                     dataSocket.close();
+                    }catch (IOException e) {
+                        System.out.println("IOException for retr:");
+                    }
                 }
 
                 if (clientCommand.equals("stor")) {
@@ -246,10 +247,6 @@ class ClientHandler extends Thread {
                 port = Integer.parseInt(tokens.nextToken());
                 clientCommand = tokens.nextToken();
             }
-
-        } catch (Exception e) {
-            System.out.println("TOTAL FAILURE");
-    }
 
     }
 

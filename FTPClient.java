@@ -20,7 +20,7 @@ class FTPClient {
         String statusCode;
         boolean clientgo = true;
         int port = 12000, port1 = 0;//was 0
-        int count = 2;
+        int dataAdd = 1;
         Scanner sc = new Scanner(System.in);
 
 
@@ -38,12 +38,11 @@ class FTPClient {
             String serverName = tokens.nextToken();
             serverName = tokens.nextToken();// pass the connect command
             port1 = Integer.parseInt(tokens.nextToken());
+            Socket ControlSocket = new Socket(serverName, port1);
             System.out.println("You are connected to " + serverName);
 
-            Socket ControlSocket = new Socket(serverName, port1);
-
             while (isOpen && clientgo) {
-                System.out.println("loop top");
+                System.out.println("loop top");// Debugging line, remove
                 DataOutputStream outToServer = new DataOutputStream(ControlSocket.getOutputStream());
 
                 //DataInputStream inFromServer = new DataInputStream(new BufferedInputStream(ControlSocket.getInputStream()));
@@ -52,6 +51,7 @@ class FTPClient {
 
                 if (sentence.equals("list: ")) {
 
+                    port = port + dataAdd;
                     outToServer.writeBytes(port + " " + sentence + " " + '\n');
                     System.out.println(sentence+ "hello world");//Debugging line, remove later
                     ServerSocket welcomeData = new ServerSocket(port);
@@ -72,13 +72,13 @@ class FTPClient {
                         System.out.println(s);
                     }
 
-                    count++;
                     welcomeData.close();
                     dataSocket.close();
                     System.out.println("\nWhat would you like to do next: \n retr: file.txt ||stor: file.txt  || quit: ");
 
                 } else if (sentence.startsWith("retr: ")) {
                     //If the user wants to retrieve a file from the server.
+                    port = port + dataAdd;
                     outToServer.writeBytes(port + " " + sentence + " " +'\n');
                     ServerSocket welcomeData = new ServerSocket(port);
                     Socket dataSocket = welcomeData.accept();
@@ -95,9 +95,11 @@ class FTPClient {
                     pw = new PrintWriter(f);
 
                     if (inFromServer.readLine().equals("200 OK")){
+                        System.out.println("200 OK");
                         String fileLine = inData.readLine();
 
                         while(fileLine.equals("eof")){
+                            System.out.println("eof");
                             pw.println(fileLine);
                             fileLine = inData.readLine();
                         }
