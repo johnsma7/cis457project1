@@ -7,10 +7,11 @@ Some code found in this class was adapted form code found on stackoverflow.com
 
  */
 public class ftpserver {
-	private static ServerSocket welcomeSocket;
+
+    private static ServerSocket welcomeSocket;
     public static void main(String args[]) throws Exception {
         int port = 12000;
-	try{	
+	try{
 		 welcomeSocket = new ServerSocket(port);
 	}
 	catch (IOException ioEx){
@@ -18,6 +19,12 @@ public class ftpserver {
 		System.exit(1);
 	}
 
+        try {
+            welcomeSocket = new ServerSocket(port);
+        } catch (IOException e) {
+            System.out.println("\nUnable to set up port!");
+            System.exit(1);
+        }
 		while (true) {
 
 		//	ServerSocket welcomeSocket = new ServerSocket(port);
@@ -26,8 +33,6 @@ public class ftpserver {
 
 			ClientHandler client = new ClientHandler(clientSocket);
 			client.run();
-			
-
 		}
 	}
 }
@@ -65,42 +70,47 @@ class ClientHandler extends Thread {
         byte[] data;
         File curDir = new File(".");
         File[] fileList = curDir.listFiles();
-	try{
-        outToClient = new DataOutputStream(client.getOutputStream());
-	}
-	catch (IOException ioEx){
-		System.out.print("Unable to set up port!");
-	}
-	try{
-        inFromClient = new BufferedReader(new InputStreamReader(client.getInputStream()));
-	}
-	catch (IOException ioEx){
-		System.out.println("Unable to set up port!");
-	}
-	try{
-        fromClient = inFromClient.readLine();
-	}
-	catch (IOException ioEx){
-		System.out.println("Unable to set up port!");
-	}
-            StringTokenizer tokens = new StringTokenizer(fromClient);
-            frstln = tokens.nextToken();
-            port = Integer.parseInt(frstln);
-            clientCommand = tokens.nextToken();
-	System.out.println(clientCommand);
+	    try{
+            outToClient = new DataOutputStream(client.getOutputStream());
+	    }
+	    catch (IOException ioEx){
+		    System.out.print("Unable to set up port!");
+	    }
+	    try{
+            inFromClient = new BufferedReader(new InputStreamReader(client.getInputStream()));
+	    }
+	    catch (IOException ioEx){
+		    System.out.println("Unable to set up port!");
+	    }
+	    try{
+            fromClient = inFromClient.readLine();
+	    }
+	    catch (IOException ioEx){
+		    System.out.println("Unable to set up port!");
+	    }
+	    StringTokenizer tokens = new StringTokenizer(fromClient);
+        frstln = tokens.nextToken();
+        port = Integer.parseInt(frstln);
+
+		while(true){
+        clientCommand = tokens.nextToken();
+	    System.out.println(clientCommand);
+
+
+
         if (clientCommand.equals("list:")) {
 		    try{
             	dataSocket = new Socket(client.getInetAddress(), port);
-		}
-		catch (IOException ioEx){
-			System.out.println("Unable to set up port!");
-		}
-		try{
-		dataOutToClient = new DataOutputStream(dataSocket.getOutputStream());
-		}
-		catch (IOException ioEx){
-			System.out.println("Unable to set up port!");
-		}
+		    }
+		    catch (IOException ioEx){
+			    System.out.println("Unable to set up port!");
+		    }
+		    try{
+		        dataOutToClient = new DataOutputStream(dataSocket.getOutputStream());
+		    }
+		    catch (IOException ioEx){
+			    System.out.println("Unable to set up port!");
+		    }
 			//list everything in the current directory and send to client
 
             String fileNames = "";
@@ -132,7 +142,7 @@ class ClientHandler extends Thread {
 		}
 
          if (clientCommand.equals("retr:")) {
-		try{	
+		try{
             		dataSocket = new Socket(client.getInetAddress(), port);
 		}
 		catch (IOException ioEx){
@@ -262,7 +272,8 @@ class ClientHandler extends Thread {
 			System.out.println("Unable to set up port!");
 		}
 	    }
-	  
+	    }
+
 	}
 
     private static void sendBytes(FileInputStream fs, DataOutputStream data) throws Exception {
