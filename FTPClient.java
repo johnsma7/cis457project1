@@ -35,13 +35,12 @@ class FTPClient {
                 throw new NoSuchElementException();
 
             }
-            String serverName = tokens.nextToken(); // pass the connect command
-            serverName = tokens.nextToken();
+            String serverName = tokens.nextToken();
+            serverName = tokens.nextToken();// pass the connect command
             port1 = Integer.parseInt(tokens.nextToken());
-            serverName = "127.0.0.1";
             System.out.println("You are connected to " + serverName);
 
-            Socket ControlSocket = new Socket("127.0.0.1", 12000);//was serverName, port1
+            Socket ControlSocket = new Socket(serverName, port1);
 
             while (isOpen && clientgo) {
                 System.out.println("loop top");
@@ -51,9 +50,8 @@ class FTPClient {
                 BufferedReader inFromServer = new BufferedReader(new InputStreamReader(ControlSocket.getInputStream()));
                 sentence = inFromUser.readLine();
 
-                if (sentence.equals("list:")) {
+                if (sentence.equals("list: ")) {
 
-                    port = Integer.parseInt(inFromServer.readLine());
                     outToServer.writeBytes(port + " " + sentence + " " + '\n');
                     System.out.println(sentence+ "hello world");//Debugging line, remove later
                     ServerSocket welcomeData = new ServerSocket(port);
@@ -62,19 +60,16 @@ class FTPClient {
 
                     //    DataInputStream inData = new DataInputStream(new BufferedInputStream(dataSocket.getInputStream()));
                     BufferedReader inData = new BufferedReader(new InputStreamReader(dataSocket.getInputStream()));
-                    while (notEnd) {//notEnd
-                        //prints out the list of files available from the server.
-                        modifiedSentence = inData.readLine();//readUTF
-                        System.out.println(modifiedSentence);
 
-                        String[] list = modifiedSentence.split(" ");
+                    //prints out the list of files available from the server.
+                    modifiedSentence = inData.readLine();//readUTF
+                    System.out.println(modifiedSentence);
 
-                        for (String s: list
-                        ) {
-                            System.out.println(s);
-                        }
-                        break;
+                    String[] list = modifiedSentence.split(" ");
 
+                    for (String s: list
+                    ) {
+                        System.out.println(s);
                     }
 
                     count++;
@@ -84,25 +79,35 @@ class FTPClient {
 
                 } else if (sentence.startsWith("retr: ")) {
                     //If the user wants to retrieve a file from the server.
-                    port = port + count;
                     outToServer.writeBytes(port + " " + sentence + " " +'\n');
                     ServerSocket welcomeData = new ServerSocket(port);
                     Socket dataSocket = welcomeData.accept();
+                    PrintWriter pw;
 
-                    DataInputStream inData = new DataInputStream(dataSocket.getInputStream());
-                    byte[] b = new byte[1024];
+                    tokens = new StringTokenizer(sentence);
+                    String command = tokens.nextToken();// purely to get "retr:" out of the way
+                    String fileName = tokens.nextToken();// desired file's name
 
-                    System.out.println("What file would you like to retrieve?");
-                    String fileName = sc.next();
+                    BufferedReader inData = new BufferedReader(new InputStreamReader(dataSocket.getInputStream()));
+
                     outToServer.writeBytes(fileName);
                     File f = new File(fileName);
+                    pw = new PrintWriter(f);
 
-                    inData.read(b);
+                    if (inFromServer.readLine().equals("200 OK")){
+                        String fileLine = inData.readLine();
 
-                    FileOutputStream fout = new FileOutputStream(f);
-                    fout.write(b);
+                        while(fileLine.equals("eof")){
+                            pw.println(fileLine);
+                            fileLine = inData.readLine();
+                        }
+                        dataSocket.close();
 
-                    System.out.println(fileName + " has been written.");
+                    } else if (inFromServer.readLine().equals("550")) {
+                        dataSocket.close();
+                        System.out.println("\nNot a valid command\nWhat would you like to do next: \n list: || retr: file.txt || stor: file.txt || quit: ");
+                    }
+
 
                 } else if (sentence.startsWith("stor: ")) {
                     //If the user wants to store a file on the server

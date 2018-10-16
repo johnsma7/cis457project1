@@ -20,12 +20,6 @@ public class ftpserver {
             System.exit(1);
         }
 
-        try {
-            welcomeSocket = new ServerSocket(port);
-        } catch (IOException e) {
-            System.out.println("\nUnable to set up port!");
-            System.exit(1);
-        }
         while (true) {
 
             //	ServerSocket welcomeSocket = new ServerSocket(port);
@@ -71,7 +65,6 @@ class ClientHandler extends Thread {
             int port = 12000;
             int port1 = 12002;
 
-            // String fromClient;
             String clientCommand;
             byte[] data;
             File curDir = new File(".");
@@ -87,18 +80,19 @@ class ClientHandler extends Thread {
                 System.out.println("Unable to set up port!");
             }
             try {
+                //outToClient.writeBytes("" + dataPort);
                 fromClient = inFromClient.readLine();
             } catch (IOException ioEx) {
                 System.out.println("Unable to set up port!");
             }
+
             StringTokenizer tokens = new StringTokenizer(fromClient);
             frstln = tokens.nextToken();
             port = Integer.parseInt(frstln);
-
             clientCommand = tokens.nextToken();
             System.out.println(clientCommand);//Debugging line remove later
 
-            outToClient.writeBytes("12005");
+
 
             while (true) {
 
@@ -107,8 +101,8 @@ class ClientHandler extends Thread {
 
                 if (clientCommand.equals("list:")) {
                     try {
-                        outToClient.writeBytes("" + dataPort);
-                        dataSocket = new Socket(client.getInetAddress(), dataPort);
+                        outToClient.writeBytes("" + port);
+                        dataSocket = new Socket(client.getInetAddress(), port);
                     } catch (IOException ioEx) {
                         System.out.println("Unable to set up port!");
                     }
@@ -126,7 +120,7 @@ class ClientHandler extends Thread {
                         for (File f : fileList) {
                             if (f.exists()) {
                                 fileNames = fileNames + f.getName() + " ";
-                                System.out.println(f.getName());
+                                System.out.println(f.getName());//Debugging line, remove later
                             }
                         }
                     } else {
@@ -147,67 +141,43 @@ class ClientHandler extends Thread {
                 }
 
                 if (clientCommand.equals("retr:")) {
-                    try {
-                        dataSocket = new Socket(client.getInetAddress(), dataPort);
-                    } catch (IOException ioEx) {
-                        System.out.println("Unable to set up port!");
-                    }
-                    try {
-                        dataOutToClient = new DataOutputStream(dataSocket.getOutputStream());
-                    }//may have issue with sym name above
-                    catch (IOException ioEx) {
-                        System.out.println("Unable to set up port!");
-                    }
 
-                    byte[] b;
-                    try {
-                        fileName = inFromClient.readLine();
-                    } catch (IOException ioEx) {
-                        System.out.println("Unable to set up port!");
-                    }
-                    boolean exists = false;
-                    int byteSize = 0;
-                    for (int i = 0; i < fileList.length; i++) {
-                        if (fileList[i].getName() == fileName) {
+                    dataSocket = new Socket(client.getInetAddress(), port);
+                    DataOutputStream dataOutToClient = new DataOutputStream(dataSocket.getOutputStream());
+                    BufferedInputStream dataInFromClient = new BufferedInputStream(dataSocket.getInputStream());
+
+                    String fileName = inFromClient.readLine();
+                    Boolean exists = false;
+
+                    for (File f : fileList){
+                        if (f.getName().equals(fileName)){
                             exists = true;
-                            byteSize = (int) fileList[i].length();
-                            b = new byte[byteSize];
                         }
-
                     }
 
-                    if (exists && byteSize > 0) {
-                        //if there is a file...
-                        try {
-                            fs = new FileInputStream(fileName);
-                        } catch (IOException ioEx) {
-                            System.out.println("Unable to set up port!");
+                    if (exists){
+                        outToClient.writeBytes("200 OK");
+                        File f = new File(fileName);
+                        input = new Scanner(f);
+                        String fileLine = input.nextLine();
+
+                        while(fileLine != null) {
+                            dataOutToClient.writeBytes(fileLine);
+                            fileLine = input.nextLine();
                         }
-                        try {
-                            sendBytes(fs, dataOutToClient);
-                        } catch (Exception ioEx) {
-                            System.out.println("crap");
-                        }
+
+                        dataOutToClient.writeBytes("eof");
                     } else {
-                        try {
-                            dataOutToClient.writeBytes("File doesn't exist");
-                        } catch (IOException ioEx) {
-                            System.out.println("Unable to set up port!");
-                        }
+                        outToClient.writeBytes("550");
+                    }
 
-                    }
-                    try {
-                        dataSocket.close();
-                    } catch (IOException ioEx) {
-                        System.out.println("Unable to set up port!");
-                    }
-                    System.out.println("Data socket closed");
+                    dataSocket.close();
                 }
 
                 if (clientCommand.equals("stor")) {
                     //saves the file to the current directory.
                     try {
-                        dataSocket = new Socket(client.getInetAddress(), dataPort);
+                        dataSocket = new Socket(client.getInetAddress(), port);
                     } catch (IOException ioEx) {
                         System.out.println("Unable to set up port!");
                     }
