@@ -5,6 +5,10 @@ import java.text.*;
 import java.lang.*;
 import javax.swing.*;
 
+/*
+Some code is modified from what was found off of StackOverflow.com
+ */
+
 class FTPClient {
 
     public static void main(String argv[]) throws Exception {
@@ -43,18 +47,18 @@ class FTPClient {
                 System.out.println("loop top");
                 DataOutputStream outToServer = new DataOutputStream(ControlSocket.getOutputStream());
 
-                DataInputStream inFromServer = new DataInputStream(new BufferedInputStream(ControlSocket.getInputStream()));
-                //	BufferedReader inFromServer = new BufferedReader(new InputStreamReader(ControlSocket.getInputStream()));
+                //DataInputStream inFromServer = new DataInputStream(new BufferedInputStream(ControlSocket.getInputStream()));
+                BufferedReader inFromServer = new BufferedReader(new InputStreamReader(ControlSocket.getInputStream()));
                 sentence = inFromUser.readLine();
 
                 if (sentence.equals("list:")) {
 
-                    port = port + count;
+                    port = Integer.parseInt(inFromServer.readLine());
                     outToServer.writeBytes(port + " " + sentence + " " + '\n');
-                    System.out.println(sentence+ "hello world");
+                    System.out.println(sentence+ "hello world");//Debugging line, remove later
                     ServerSocket welcomeData = new ServerSocket(port);
                     Socket dataSocket = welcomeData.accept();
-                    System.out.println("fkdjbvbga");
+                    System.out.println("fkdjbvbga");//Debugging line, remove later
 
                     //    DataInputStream inData = new DataInputStream(new BufferedInputStream(dataSocket.getInputStream()));
                     BufferedReader inData = new BufferedReader(new InputStreamReader(dataSocket.getInputStream()));
@@ -88,8 +92,9 @@ class FTPClient {
                     DataInputStream inData = new DataInputStream(dataSocket.getInputStream());
                     byte[] b = new byte[1024];
 
-                    System.out.println("What file would you like?");
+                    System.out.println("What file would you like to retrieve?");
                     String fileName = sc.next();
+                    outToServer.writeBytes(fileName);
                     File f = new File(fileName);
 
                     inData.read(b);

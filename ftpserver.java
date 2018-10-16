@@ -10,7 +10,8 @@ public class ftpserver {
 
     private static ServerSocket welcomeSocket;
     public static void main(String args[]) throws Exception {
-        int port = 12000;
+        final int port = 12000;
+        int count = 0;
         try{
             welcomeSocket = new ServerSocket(port);
         }
@@ -31,7 +32,8 @@ public class ftpserver {
             System.out.println("loop top");
             Socket clientSocket = welcomeSocket.accept();
 
-            ClientHandler client = new ClientHandler(clientSocket);
+            count = count + 2;
+            ClientHandler client = new ClientHandler(clientSocket, (port + count));
             client.run();
         }
     }
@@ -51,11 +53,13 @@ class ClientHandler extends Thread {
     private static DataOutputStream outToClient;
     private static BufferedReader inFromClient;
     private String fromClient;
+    private int dataPort;
 
-    public ClientHandler(Socket socket)
+    public ClientHandler(Socket socket, int port)
     {
         //Set up reference to associated socket...
         client = socket;
+        dataPort = port;
     }
 
     public void run()
@@ -90,8 +94,11 @@ class ClientHandler extends Thread {
             StringTokenizer tokens = new StringTokenizer(fromClient);
             frstln = tokens.nextToken();
             port = Integer.parseInt(frstln);
+
             clientCommand = tokens.nextToken();
             System.out.println(clientCommand);//Debugging line remove later
+
+            outToClient.writeBytes("12005");
 
             while (true) {
 
@@ -100,7 +107,8 @@ class ClientHandler extends Thread {
 
                 if (clientCommand.equals("list:")) {
                     try {
-                        dataSocket = new Socket(client.getInetAddress(), port);
+                        outToClient.writeBytes("" + dataPort);
+                        dataSocket = new Socket(client.getInetAddress(), dataPort);
                     } catch (IOException ioEx) {
                         System.out.println("Unable to set up port!");
                     }
@@ -140,7 +148,7 @@ class ClientHandler extends Thread {
 
                 if (clientCommand.equals("retr:")) {
                     try {
-                        dataSocket = new Socket(client.getInetAddress(), port);
+                        dataSocket = new Socket(client.getInetAddress(), dataPort);
                     } catch (IOException ioEx) {
                         System.out.println("Unable to set up port!");
                     }
@@ -199,7 +207,7 @@ class ClientHandler extends Thread {
                 if (clientCommand.equals("stor")) {
                     //saves the file to the current directory.
                     try {
-                        dataSocket = new Socket(client.getInetAddress(), port);
+                        dataSocket = new Socket(client.getInetAddress(), dataPort);
                     } catch (IOException ioEx) {
                         System.out.println("Unable to set up port!");
                     }
@@ -264,9 +272,9 @@ class ClientHandler extends Thread {
 
                 //This should get the next command and port that we want the data line to be on.
                 //Then it loops to run that next command.
-                StringTokenizer loopy = new StringTokenizer(clientCommand);
-                port = Integer.parseInt(loopy.nextToken());
-                clientCommand = loopy.nextToken();
+                tokens = new StringTokenizer(clientCommand);
+                port = Integer.parseInt(tokens.nextToken());
+                clientCommand = tokens.nextToken();
             }
 
         } catch (Exception e) {
