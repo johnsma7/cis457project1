@@ -17,14 +17,12 @@ class FTPClient {
         String sentence;
         String modifiedSentence;
         boolean isOpen = true;
-        int number = 1;
         boolean notEnd = true;
         String statusCode;
         boolean clientgo = true;
-        int port = 12000, port1 = 0;//was 0
+        int port = 12000, port1;
         int dataAdd = 1;
-        Scanner sc = new Scanner(System.in);
-
+        Scanner sc;
 
         BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
         sentence = inFromUser.readLine();
@@ -55,17 +53,13 @@ class FTPClient {
 
                     port = port + dataAdd;
                     outToServer.writeBytes(port + " " + sentence + " " + '\n');
-                    System.out.println(sentence+ "hello world");//Debugging line, remove later
                     ServerSocket welcomeData = new ServerSocket(port);
                     Socket dataSocket = welcomeData.accept();
-                    System.out.println("fkdjbvbga");//Debugging line, remove later
 
-                    //    DataInputStream inData = new DataInputStream(new BufferedInputStream(dataSocket.getInputStream()));
                     BufferedReader inData = new BufferedReader(new InputStreamReader(dataSocket.getInputStream()));
 
                     //prints out the list of files available from the server.
                     modifiedSentence = inData.readLine();//readUTF
-                    System.out.println(modifiedSentence);
 
                     String[] list = modifiedSentence.split(" ");
 
@@ -84,15 +78,17 @@ class FTPClient {
                     outToServer.writeBytes(port + " " + sentence + " " +'\n');
                     ServerSocket welcomeData = new ServerSocket(port);
                     Socket dataSocket = welcomeData.accept();
-                    PrintWriter pw;
+
+                    PrintWriter pw;// This is to write the file.
 
                     tokens = new StringTokenizer(sentence);
                     String command = tokens.nextToken();// purely to get "retr:" out of the way so we can grab the next token
                     String fileName = tokens.nextToken();// desired file's name
 
                     BufferedReader inData = new BufferedReader(new InputStreamReader(dataSocket.getInputStream()));
+                    DataOutputStream outData = new DataOutputStream(dataSocket.getOutputStream());
 
-                    outToServer.writeBytes(fileName);
+                    outData.writeBytes(fileName);
 
                     String newFileName = fileName.replaceFirst("[.][^.]+$", "");
 
