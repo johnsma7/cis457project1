@@ -156,13 +156,16 @@ class ClientHandler extends Thread {
                         System.out.println("All ok?"); //Debugging line
                         File f = new File(fileName);
                         input = new Scanner(f);
-                        String fileLine = input.nextLine();
+                        try {
+                            String fileLine = input.nextLine();
 
-                        while(fileLine != null) {
-                            dataOutToClient.writeBytes(fileLine);
-                            fileLine = input.nextLine();
+                            while (fileLine != null) {
+                                dataOutToClient.writeBytes(fileLine);
+                                fileLine = input.nextLine();
+                            }
+                        } catch (NoSuchElementException e){
+                            System.out.println("Empty line reached.");
                         }
-
                         dataOutToClient.writeBytes("eof");
                     } else {
                         outToClient.writeBytes("550");

@@ -1,3 +1,5 @@
+package ClientSpace;
+
 import java.io.*;
 import java.net.*;
 import java.util.*;
@@ -85,16 +87,18 @@ class FTPClient {
                     PrintWriter pw;
 
                     tokens = new StringTokenizer(sentence);
-                    String command = tokens.nextToken();// purely to get "retr:" out of the way
+                    String command = tokens.nextToken();// purely to get "retr:" out of the way so we can grab the next token
                     String fileName = tokens.nextToken();// desired file's name
 
                     BufferedReader inData = new BufferedReader(new InputStreamReader(dataSocket.getInputStream()));
 
                     outToServer.writeBytes(fileName);
-                    File f = new File(fileName);
+                    File f = new File(fileName + 1);
                     pw = new PrintWriter(f);
 
-                    if (inFromServer.readLine().equals("200 OK")){
+                    String responce = inFromServer.readLine();
+
+                    if (responce.equals("200 OK")){
                         System.out.println("200 OK");
                         String fileLine = inData.readLine();
 
@@ -105,7 +109,7 @@ class FTPClient {
                         }
                         dataSocket.close();
 
-                    } else if (inFromServer.readLine().equals("550")) {
+                    } else if (responce.equals("550")) {
                         dataSocket.close();
                         System.out.println("\nNot a valid command\nWhat would you like to do next: \n list: || retr: file.txt || stor: file.txt || quit: ");
                     }
