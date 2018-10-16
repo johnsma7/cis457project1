@@ -93,25 +93,32 @@ class FTPClient {
                     BufferedReader inData = new BufferedReader(new InputStreamReader(dataSocket.getInputStream()));
 
                     outToServer.writeBytes(fileName);
-                    File f = new File(fileName + 1);
+
+                    String newFileName = fileName.replaceFirst("[.][^.]+$", "");
+
+                    File f = new File(newFileName + 1 + ".txt");
                     pw = new PrintWriter(f);
 
-                    String responce = inFromServer.readLine();
+                    statusCode = inFromServer.readLine();
+                    System.out.println(statusCode);
 
-                    if (responce.equals("200 OK")){
+                    if (statusCode.equals("200 OK")){
                         System.out.println("200 OK");
                         String fileLine = inData.readLine();
 
-                        while(fileLine.equals("eof")){
+                        while(!fileLine.equals("eof")){
                             System.out.println("eof");
                             pw.println(fileLine);
                             fileLine = inData.readLine();
                         }
                         dataSocket.close();
 
-                    } else if (responce.equals("550")) {
+                    } else if (statusCode.equals("550")) {
                         dataSocket.close();
                         System.out.println("\nNot a valid command\nWhat would you like to do next: \n list: || retr: file.txt || stor: file.txt || quit: ");
+                    } else {
+                        System.out.println("Something has gone wrong..." + statusCode);
+                        dataSocket.close();
                     }
 
 

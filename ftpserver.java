@@ -28,7 +28,7 @@ public class ftpserver {
 
             count = count + 2;
             ClientHandler client = new ClientHandler(clientSocket, (port + count));
-            client.run();
+            client.start();
         }
     }
 }
@@ -54,29 +54,26 @@ class ClientHandler extends Thread {
         //Set up reference to associated socket...
         client = socket;
         dataPort = port;
+
+        try{
+            outToClient = new DataOutputStream(client.getOutputStream());
+            inFromClient = new BufferedReader(new InputStreamReader(client.getInputStream()));
+        }catch (IOException e){
+            System.out.println("ClientHandler has failed to setup the input and output streams.");
+        }
     }
 
     public void run()
     {
-            String received;
             String frstln;
-            int port = 12000;
+            int port;
             int port1 = 12002;
 
             String clientCommand;
             byte[] data;
             File curDir = new File(".");
             File[] fileList = curDir.listFiles();
-            try {
-                outToClient = new DataOutputStream(client.getOutputStream());
-            } catch (IOException ioEx) {
-                System.out.print("Unable to set up port!");
-            }
-            try {
-                inFromClient = new BufferedReader(new InputStreamReader(client.getInputStream()));
-            } catch (IOException ioEx) {
-                System.out.println("Unable to set up port!");
-            }
+
             try {
                 //outToClient.writeBytes("" + dataPort);
                 fromClient = inFromClient.readLine();
@@ -137,44 +134,49 @@ class ClientHandler extends Thread {
                 if (clientCommand.equals("retr:")) {
                     try{
                         System.out.println("Made it this far...");
-                    dataSocket = new Socket(client.getInetAddress(), port);
-                    DataOutputStream dataOutToClient = new DataOutputStream(dataSocket.getOutputStream());
-                    BufferedInputStream dataInFromClient = new BufferedInputStream(dataSocket.getInputStream());
+                        dataSocket = new Socket(client.getInetAddress(), port);
+                        DataOutputStream dataOutToClient = new DataOutputStream(dataSocket.getOutputStream());
+                        BufferedInputStream dataInFromClient = new BufferedInputStream(dataSocket.getInputStream());
 
-                    String fileName = tokens.nextToken();
-                    Boolean exists = false;
+                        String fileName = tokens.nextToken();
+                        Boolean exists = false;
 
-                    for (File f : fileList){
-                        if (f.getName().equals(fileName)){
-                            exists = true;
-                            System.out.println("File found!");
-                        }
-                    }
-
-                    if (exists){
-                        outToClient.writeBytes("200 OK");
-                        System.out.println("All ok?"); //Debugging line
-                        File f = new File(fileName);
-                        input = new Scanner(f);
-                        try {
-                            String fileLine = input.nextLine();
-
-                            while (fileLine != null) {
-                                dataOutToClient.writeBytes(fileLine);
-                                fileLine = input.nextLine();
+                        for (File f : fileList){
+                            if (f.getName().equals(fileName)){
+                                exists = true;
+                                System.out.println("File found!");
                             }
-                        } catch (NoSuchElementException e){
-                            System.out.println("Empty line reached.");
                         }
-                        dataOutToClient.writeBytes("eof");
-                    } else {
-                        outToClient.writeBytes("550");
-                        System.out.println("Oh dear...");//debugging line
-                    }
 
-                    dataSocket.close();
+                        if (exists){
+                            outToClient.writeBytes("200 OK");
+                            System.out.println("All ok?"); //Debugging line
+                            File f = new File(fileName);
+                            input = new Scanner(f);
+                            try {
+                                String fileLine = input.nextLine();
+
+                                while (fileLine != null) {
+                                    dataOutToClient.writeBytes(fileLine);
+                                    fileLine = input.nextLine();
+                                }
+                            } catch (NoSuchElementException e){
+                                System.out.println("Empty line reached.");
+                                dataOutToClient.writeBytes("eof");
+                            }
+                            dataOutToClient.writeBytes("eof");
+                        } else {
+                            outToClient.writeBytes("550");
+                            System.out.println("Oh dear...");//debugging line
+                        }
                     }catch (IOException e) {
                         System.out.println("IOException for retr:");
+                    }
+
+                    try {
+                        dataSocket.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
                 }
 
