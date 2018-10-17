@@ -10,7 +10,7 @@ public class ftpserver {
     private static ServerSocket welcomeSocket;
     public static void main(String args[]) throws Exception {
         final int port = 12000;
-        int count = 0;
+        int count = 1;
         try{
             welcomeSocket = new ServerSocket(port);
         }
@@ -20,15 +20,14 @@ public class ftpserver {
         }
 
         while (true) {
-
             //	ServerSocket welcomeSocket = new ServerSocket(port);
-            System.out.println("loop top");//debugging line, remove later
             Socket clientSocket = welcomeSocket.accept();
 
-            ClientHandler client = new ClientHandler(clientSocket);
+            ClientHandler client = new ClientHandler(clientSocket, count);
             client.start();
-            System.out.println("Started a new client. ");//debugging line, remove later
-        }
+            System.out.println("Started connection with client "+count+".");//debugging line, remove later
+            count = count +1;
+	}
     }
 }
 
@@ -47,12 +46,13 @@ class ClientHandler extends Thread {
     private static BufferedReader inFromClient;
     private String fromClient;
     private int dataPort;
+    private int clientName;
 
-    public ClientHandler(Socket socket)
+    public ClientHandler(Socket socket, int count)
     {
         //Set up reference to associated socket...
         client = socket;
-
+	clientName = count;
         try{
             outToClient = new DataOutputStream(client.getOutputStream());
             inFromClient = new BufferedReader(new InputStreamReader(client.getInputStream()));
@@ -69,7 +69,7 @@ class ClientHandler extends Thread {
         String clientCommand;
         File curDir = new File(".");
         File[] fileList = curDir.listFiles();
-
+	boolean running = true;
         try {
             fromClient = inFromClient.readLine();
         } catch (IOException ioEx) {
@@ -80,11 +80,8 @@ class ClientHandler extends Thread {
         frstln = tokens.nextToken();
         port = Integer.parseInt(frstln);
         clientCommand = tokens.nextToken();
-        System.out.println(clientCommand);//Debugging line remove later
 
-        while (true) {
-
-            System.out.println(clientCommand + " Inside loop");//Debugging line remove later
+        while (running) {
 
             if (clientCommand.equals("list:")) {
                 try {
@@ -221,27 +218,29 @@ class ClientHandler extends Thread {
                 }
             }
             if (clientCommand.equals("quit:")) {
-                System.out.println("Disconnecting client...");
-
+                System.out.println("Client "+clientName+" disconnected.");
+		
                 try {
                     client.close();
                 } catch (IOException ioEx) {
                     System.out.println("Unable to set up port!");
                 }
-            }
+		running = false;
+            }else{
+            	try {
+                	clientCommand = inFromClient.readLine();
 
-            try {
-                clientCommand = inFromClient.readLine();
-
-            } catch (IOException ioEx) {
-                System.out.println("Command Fail");
-            }
+            	} catch (IOException ioEx) {
+                	System.out.println("Command Fail");
+            	}
 
             //This should get the next command and port that we want the data line to be on.
             //Then it loops to run that next command.
-            tokens = new StringTokenizer(clientCommand);
-            port = Integer.parseInt(tokens.nextToken());
-            clientCommand = tokens.nextToken();
+            	tokens = new StringTokenizer(clientCommand);
+
+            	port = Integer.parseInt(tokens.nextToken());
+            	clientCommand = tokens.nextToken();
+		}
         }
 
     }
