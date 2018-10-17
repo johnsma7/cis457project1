@@ -3,7 +3,7 @@ import java.net.*;
 import java.util.*;
 
 /*
-Some code found in this class was adapted from code found on stackoverflow.com
+Some code found in this class was adapted form code found on stackoverflow.com
 
  */
 public class ftpserver {
@@ -23,12 +23,12 @@ public class ftpserver {
         while (true) {
 
             //	ServerSocket welcomeSocket = new ServerSocket(port);
-            System.out.println("loop top");//debugging line, remove later
+            System.out.println("loop top");
             Socket clientSocket = welcomeSocket.accept();
 
-            ClientHandler client = new ClientHandler(clientSocket);
+            count = count + 2;
+            ClientHandler client = new ClientHandler(clientSocket, (port + count));
             client.start();
-            System.out.println("Started a new client. ");//debugging line, remove later
         }
     }
 }
@@ -39,6 +39,8 @@ class ClientHandler extends Thread {
     private String fileName;
     private Socket client;
     private static Socket dataSocket;
+    private static DataOutputStream dataOutToClient;
+    private Scanner input;
     private PrintWriter output;
     private ServerSocket s;
     private static DataInputStream dataFromClient;
@@ -47,10 +49,11 @@ class ClientHandler extends Thread {
     private String fromClient;
     private int dataPort;
 
-    public ClientHandler(Socket socket)
+    public ClientHandler(Socket socket, int port)
     {
         //Set up reference to associated socket...
         client = socket;
+        dataPort = port;
 
         try{
             outToClient = new DataOutputStream(client.getOutputStream());
@@ -62,28 +65,31 @@ class ClientHandler extends Thread {
 
     public void run()
     {
-        String frstln;
-        int port;
+            String frstln;
+            int port;
+            int port1 = 12002;
 
-        String clientCommand;
-        File curDir = new File(".");
-        File[] fileList = curDir.listFiles();
+            String clientCommand;
+            byte[] data;
+            File curDir = new File(".");
+            File[] fileList = curDir.listFiles();
 
-        try {
-            fromClient = inFromClient.readLine();
-        } catch (IOException ioEx) {
-            System.out.println("Unable to set up port!");
-        }
+            try {
+                //outToClient.writeBytes("" + dataPort);
+                fromClient = inFromClient.readLine();
+            } catch (IOException ioEx) {
+                System.out.println("Unable to set up port!");
+            }
 
-        StringTokenizer tokens = new StringTokenizer(fromClient);
-        frstln = tokens.nextToken();
-        port = Integer.parseInt(frstln);
-        clientCommand = tokens.nextToken();
-        System.out.println(clientCommand);//Debugging line remove later
+            StringTokenizer tokens = new StringTokenizer(fromClient);
+            frstln = tokens.nextToken();
+            port = Integer.parseInt(frstln);
+            clientCommand = tokens.nextToken();
+            System.out.println(clientCommand);//Debugging line remove later
 
-        while (true) {
+            while (true) {
 
-            System.out.println(clientCommand + " Inside loop");//Debugging line remove later
+                System.out.println(clientCommand);//Debugging line remove later
 
             if (clientCommand.equals("list:")) {
                 try {
@@ -110,8 +116,8 @@ class ClientHandler extends Thread {
                     System.out.println("Unable to set up port!131");
                 }
 
-                System.out.println("Data Socket closed");
-            }
+                    System.out.println("Data Socket closed");
+                }
 
             if (clientCommand.equals("retr:")) {
                 try{
@@ -244,9 +250,4 @@ class ClientHandler extends Thread {
     }
 
 }
-
-
-
-
-
 

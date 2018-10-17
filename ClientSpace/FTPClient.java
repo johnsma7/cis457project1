@@ -18,13 +18,12 @@ class FTPClient {
         String modifiedSentence;
         boolean isOpen = true;
         boolean clientgo = true;
-        int port = 12000, port1;
-        int dataAdd = 1;
+        int port = 12002, port1 = 0;
 
         BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
+	System.out.println("Enter connect <server name> <port>");
         sentence = inFromUser.readLine();
         StringTokenizer tokens = new StringTokenizer(sentence);
-        System.out.println("Hello");
 
         if (sentence.startsWith("connect")) {
             if(tokens.countTokens() < 2){
@@ -32,12 +31,19 @@ class FTPClient {
                 throw new NoSuchElementException();
 
             }
-            String serverName = tokens.nextToken();
-            serverName = tokens.nextToken();// pass the connect command
+
+	    System.out.println("Choose from the following commands: ");
+	    System.out.println("list: supplies a list of files from the current server directory");
+	    System.out.println("retr: <filename.txt> retrieves the file if it is in the current server directory");
+	    System.out.println("stor: <filename.txt> passes the filename and stores it on the server side");
+	    System.out.println("quit: closes the client connection");
+            String serverName = tokens.nextToken(); // pass the connect command
+            serverName = tokens.nextToken();
             port1 = Integer.parseInt(tokens.nextToken());
-            Socket ControlSocket = new Socket(serverName, port1);
+            serverName = "127.0.0.1";
             System.out.println("You are connected to " + serverName);
 
+            Socket ControlSocket = new Socket(serverName, port1);//was serverName, port1
             while (isOpen && clientgo) {
                 System.out.println("loop top");// Debugging line, remove
                 DataOutputStream outToServer = new DataOutputStream(ControlSocket.getOutputStream());
@@ -46,9 +52,14 @@ class FTPClient {
                 BufferedReader inFromServer = new BufferedReader(new InputStreamReader(ControlSocket.getInputStream()));
                 sentence = inFromUser.readLine();
 
-                if (sentence.equals("list: ")) {
 
-                    port = port + dataAdd;
+		//	String fromServer = inFromServer.readLine();
+		//	StringTokenizer token = new StringTokenizer(fromServer);
+		//	String frstIn= token.nextToken();
+		//	port1 = Integer.parseInt(frstIn);
+		//	System.out.println(port1);
+            	if (sentence.equals("list:")){
+
                     outToServer.writeBytes(port + " " + sentence + " " + '\n');
                     ServerSocket welcomeData = new ServerSocket(port);
                     Socket dataSocket = welcomeData.accept();
@@ -71,12 +82,10 @@ class FTPClient {
 
                 } else if (sentence.startsWith("retr: ")) {
                     //If the user wants to retrieve a file from the server.
-                    port = port + dataAdd;
-                    outToServer.writeBytes(port + " " + sentence + " " +'\n');//This sends the port number retr: <fileName>
+
+                    outToServer.writeBytes(port + " " + sentence + " " +'\n');
                     ServerSocket welcomeData = new ServerSocket(port);
                     Socket dataSocket = welcomeData.accept();
-
-                    System.out.println(dataSocket.isConnected());
 
                     BufferedReader inData = new BufferedReader(new InputStreamReader(dataSocket.getInputStream()));
 
