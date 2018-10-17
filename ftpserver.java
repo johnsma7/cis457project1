@@ -39,7 +39,6 @@ class ClientHandler extends Thread {
     private String fileName;
     private Socket client;
     private static Socket dataSocket;
-    private static DataOutputStream dataOutToClient;
     private Scanner input;
     private PrintWriter output;
     private ServerSocket s;
@@ -90,27 +89,22 @@ class ClientHandler extends Thread {
             if (clientCommand.equals("list:")) {
                 try {
                     dataSocket = new Socket(client.getInetAddress(), port);
-                    dataOutToClient = new DataOutputStream(dataSocket.getOutputStream());
+                    DataOutputStream dataOutToClient = new DataOutputStream(dataSocket.getOutputStream());
 
-                } catch (IOException ioEx) {
-                    System.out.println("Unable to set up port!106");
-                }
-                //list everything in the current directory and send to client
+                    //list everything in the current directory and send to client
+                    String fileNames = "";
+                    if (fileList != null) {
 
-                String fileNames = "";
-
-                if (fileList != null) {
-
-                    for (File f : fileList) {
-                        if (f.exists()) {
-                            fileNames = fileNames + f.getName() + " ";
-                            System.out.println(f.getName());//Debugging line, remove later
+                        for (File f : fileList) {
+                            if (f.exists()) {
+                                fileNames = fileNames + f.getName() + " ";
+                                System.out.println(f.getName());//Debugging line, remove later
+                            }
                         }
+                    } else {
+                        System.out.println("file list null");
                     }
-                } else {
-                    System.out.println("file list null");
-                }
-                try {
+
                     dataOutToClient.writeBytes(fileNames);
                     dataSocket.close();
                 } catch (IOException ioEx) {
@@ -122,11 +116,13 @@ class ClientHandler extends Thread {
 
             if (clientCommand.equals("retr:")) {
                 try{
-                    System.out.println("Start of retr.");//debugging line, remove later
+                    System.out.println("Start of retr." + "\n" + fromClient);//debugging line, remove later
                     dataSocket = new Socket(client.getInetAddress(), port);
                     BufferedReader dataInFromClient = new BufferedReader(new InputStreamReader(dataSocket.getInputStream()));
+                    DataOutputStream dataOutToClient = new DataOutputStream(dataSocket.getOutputStream());
 
-                    String fileName = dataInFromClient.readLine();
+                    //Read in the file name from the client.
+                    String fileName = tokens.nextToken();
                     System.out.println(fileName);//debugging line, remove later
                     boolean exists = false;
 
@@ -144,7 +140,7 @@ class ClientHandler extends Thread {
 
                     if (exists){
                         outToClient.writeBytes("200 OK");
-                        System.out.println("All ok?"); //Debugging line
+                        System.out.println("Sent 200 OK"); //Debugging line
                         File f = new File(fileName);
                         input = new Scanner(f);
                         try {
@@ -155,13 +151,13 @@ class ClientHandler extends Thread {
                                 fileLine = input.nextLine();
                             }
                         } catch (NoSuchElementException e){
-                            System.out.println("Empty line reached.");
+                            System.out.println("Empty line reached.");//debugging line, remove later
                             dataOutToClient.writeBytes("eof");
                         }
                         dataOutToClient.writeBytes("eof");
                     } else {
                         outToClient.writeBytes("550");
-                        System.out.println("Oh dear...");//debugging line
+                        System.out.println("Sent 550, file doesn't exist");//debugging line
                     }
                 }catch (IOException e) {
                     System.out.println("IOException for retr:");
@@ -174,56 +170,47 @@ class ClientHandler extends Thread {
                 }
             }
 
-            if (clientCommand.equals("stor")) {
-                //saves the file to the current directory.
-                try {
-                    dataSocket = new Socket(client.getInetAddress(), port);
-                } catch (IOException ioEx) {
-                    System.out.println("Unable to set up port!");
-                }
+                if (clientCommand.equals("stor")) {
+                    //saves the file to the current directory.
+                    try {
+                        dataSocket = new Socket(client.getInetAddress(), port);
 
-                try {
-                    dataFromClient = new DataInputStream(dataSocket.getInputStream());
-                } catch (IOException ioEx) {
-                    System.out.println("Unable to set up port!");
-                }
-                byte[] b = new byte[1024];
-                String fileName = tokens.nextToken(); // This assumes we send the file name via the command line right after stor:
-                try {
-                    out = new FileOutputStream(fileName);
-                } catch (IOException ioEx) {
-                    System.out.println("Unable to set up port!");
-                }
+                        System.out.println("Unable to set up port!");
 
-                try {
-                    dataFromClient.read(b);
-                } catch (IOException ioEx) {
-                    System.out.println("Unable to set up port!");
+                        dataFromClient = new DataInputStream(dataSocket.getInputStream());
+
+                        System.out.println("Unable to set up port!");
+
+                        byte[] b = new byte[1024];
+                        String fileName = tokens.nextToken(); // This assumes we send the file name via the command line right after stor:
+
+                        out = new FileOutputStream(fileName);
+
+                        System.out.println("Unable to set up port!");
+
+                        dataFromClient.read(b);
+
+                        System.out.println("Unable to set up port!");
+
+
+                        out.write(b);
+
+                        System.out.println("Unable to set up port!");
+
+
+                        out.close();
+                        System.out.println("Unable to set up port!");
+                        dataSocket.close();
+                        System.out.println("Unable to set up port!");
+                        outToClient.writeBytes("File stored.");
+
+                    } catch (IOException ioEx) {
+                        System.out.println("Unable to set up port!");
+                    }
                 }
-                try {
-                    out.write(b);
-                } catch (IOException ioEx) {
-                    System.out.println("Unable to set up port!");
-                }
-                try {
-                    out.close();
-                } catch (IOException ioEx) {
-                    System.out.println("Unable to set up port!");
-                }
-                try {
-                    dataSocket.close();
-                } catch (IOException ioEx) {
-                    System.out.println("Unable to set up port!");
-                }
-                try {
-                    outToClient.writeBytes("File stored.");
-                } catch (IOException ioEx) {
-                    System.out.println("Unable to set up port!");
-                }
-            }
-            if (clientCommand.equals("quit:")) {
-                System.out.println("Closing the server...");
-                System.exit(1);
+                if (clientCommand.equals("quit:")) {
+                    System.out.println("Closing the server...");
+                    System.exit(1);
 
 
                 try {

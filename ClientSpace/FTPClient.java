@@ -79,27 +79,29 @@ class FTPClient {
                     ServerSocket welcomeData = new ServerSocket(port);
                     Socket dataSocket = welcomeData.accept();
 
-                    PrintWriter pw;// This is to write the file.
-
-                    tokens = new StringTokenizer(sentence);
-                    String command = tokens.nextToken();// purely to get "retr:" out of the way so we can grab the next token
-                    String fileName = tokens.nextToken();// desired file's name
-
                     BufferedReader inData = new BufferedReader(new InputStreamReader(dataSocket.getInputStream()));
                     DataOutputStream outData = new DataOutputStream(dataSocket.getOutputStream());
 
-                    outData.writeBytes(fileName);
+                    PrintWriter pw;// This is to write the file.
 
-                    String newFileName = fileName.replaceFirst("[.][^.]+$", "");
-
-                    File f = new File(newFileName + 1 + ".txt");
-                    pw = new PrintWriter(f);
+                    /*tokens = new StringTokenizer(sentence);
+                    String command = tokens.nextToken();// purely to get "retr:" out of the way so we can grab the next token
+                    String fileName = tokens.nextToken();// desired file's name*/
+                    String[] s = sentence.split(" ");
+                    String fileName = s[1];
+                    System.out.println("fileName: " + fileName);//debugging line, remove later
 
                     statusCode = inFromServer.readLine();
-                    System.out.println(statusCode);
+                    System.out.println(statusCode);//debugging line, remove later
 
                     if (statusCode.equals("200 OK")){
                         System.out.println("200 OK");
+
+                        String newFileName = fileName.replaceFirst("[.][^.]+$", "");
+
+                        File f = new File(newFileName + 1 + ".txt");
+                        pw = new PrintWriter(f);
+
                         String fileLine = inData.readLine();
 
                         while(!fileLine.equals("eof")){
