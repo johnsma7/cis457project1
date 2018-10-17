@@ -19,8 +19,7 @@ class FTPClient {
         boolean isOpen = true;
         boolean clientgo = true;
 	boolean valid = false;
-        int port = 0;
-       	int port1 = 0;
+        int port = 12002, port1=0;
 
 	while(!valid){
         	inFromUser = new BufferedReader(new InputStreamReader(System.in));
@@ -49,7 +48,6 @@ class FTPClient {
           port1 = Integer.parseInt(tokens.nextToken());
           System.out.println("You are connected to " + serverName);
 	  Socket ControlSocket = new Socket(serverName, port1);//was serverName, port1
-	  port = port1+ 1;
             System.out.println("");
             System.out.println("Choose from the following commands: ");
             System.out.println("list: supplies a list of files from the current server directory");

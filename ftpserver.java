@@ -113,19 +113,19 @@ class ClientHandler extends Thread {
 
             if (clientCommand.equals("retr:")) {
                 try{
-                   // System.out.println("Start of retr." + "\n" + fromClient);//debugging line, remove later
+                  // System.out.println("Start of retr." + "\n" + fromClient);//debugging line, remove later
                     dataSocket = new Socket(client.getInetAddress(), port);
                     BufferedReader dataInFromClient = new BufferedReader(new InputStreamReader(dataSocket.getInputStream()));
                     DataOutputStream dataOutToClient = new DataOutputStream(dataSocket.getOutputStream());
 
-                  //  System.out.println(dataSocket.isConnected());
+                 // System.out.println(dataSocket.isConnected());
 
                     //Read in the file name from the client.
                     String fileName = tokens.nextToken();
-                   // System.out.println(fileName);//debugging line, remove later
+                 //  System.out.println(fileName);//debugging line, remove later
                     boolean exists = false;
 
-                   // System.out.println(dataSocket.isConnected());
+                  // System.out.println(dataSocket.isConnected());
 
                     try{
                         for (File f : fileList){
@@ -140,24 +140,25 @@ class ClientHandler extends Thread {
 
                     if (exists){
                         outToClient.writeBytes("200 OK\n");
-                       // System.out.println("Sent 200 OK"); //Debugging line
+                     //  System.out.println("Sent 200 OK"); //Debugging line
 
                         File f = new File(fileName);
                         BufferedReader input = new BufferedReader(new FileReader(f));
 
                         try {
                             String fileLine = input.readLine();
-                           // System.out.println(fileLine);
+                          // System.out.println(fileLine);
                             while (fileLine != null) {
                                 dataOutToClient.writeBytes(fileLine + "\n");
                                 fileLine = input.readLine();
-                              //  System.out.println(fileLine);
+                             // System.out.println(fileLine);
                             }
                         } catch (NoSuchElementException e){
                             System.out.println("Empty line reached.");//debugging line, remove later
                             dataOutToClient.writeBytes("EOF");
                         }
                         dataOutToClient.writeBytes("EOF");
+			input.close();
                     } else {
                         outToClient.writeBytes("550\n");
                         System.out.println("Sent 550, file doesn't exist");//debugging line
@@ -169,9 +170,9 @@ class ClientHandler extends Thread {
                 }
 
                 try {
-                   // System.out.println("Closing connection...");
+                  // System.out.println("Closing connection...");
                     dataSocket.close();
-                   // System.out.println("Connection closed.");
+                  // System.out.println("Connection closed.");
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
