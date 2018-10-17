@@ -39,7 +39,6 @@ class ClientHandler extends Thread {
     private String fileName;
     private Socket client;
     private static Socket dataSocket;
-    private Scanner input;
     private PrintWriter output;
     private ServerSocket s;
     private static DataInputStream dataFromClient;
@@ -121,10 +120,14 @@ class ClientHandler extends Thread {
                     BufferedReader dataInFromClient = new BufferedReader(new InputStreamReader(dataSocket.getInputStream()));
                     DataOutputStream dataOutToClient = new DataOutputStream(dataSocket.getOutputStream());
 
+                    System.out.println(dataSocket.isConnected());
+
                     //Read in the file name from the client.
                     String fileName = tokens.nextToken();
                     System.out.println(fileName);//debugging line, remove later
                     boolean exists = false;
+
+                    System.out.println(dataSocket.isConnected());
 
                     try{
                         for (File f : fileList){
@@ -139,24 +142,26 @@ class ClientHandler extends Thread {
                     }
 
                     if (exists){
-                        outToClient.writeBytes("200 OK");
+                        outToClient.writeBytes("200 OK\n");
                         System.out.println("Sent 200 OK"); //Debugging line
                         File f = new File(fileName);
-                        input = new Scanner(f);
-                        try {
-                            String fileLine = input.nextLine();
+                        BufferedReader input = new BufferedReader(new FileReader(f));
 
+                        try {
+                            String fileLine = input.readLine();
+                            System.out.println(fileLine);
                             while (fileLine != null) {
-                                dataOutToClient.writeBytes(fileLine);
-                                fileLine = input.nextLine();
+                                dataOutToClient.writeBytes(fileLine + "\n");
+                                fileLine = input.readLine();
+                                System.out.println(fileLine);
                             }
                         } catch (NoSuchElementException e){
                             System.out.println("Empty line reached.");//debugging line, remove later
-                            dataOutToClient.writeBytes("eof");
+                            dataOutToClient.writeBytes("EOF");
                         }
-                        dataOutToClient.writeBytes("eof");
+                        dataOutToClient.writeBytes("EOF");
                     } else {
-                        outToClient.writeBytes("550");
+                        outToClient.writeBytes("550\n");
                         System.out.println("Sent 550, file doesn't exist");//debugging line
                     }
                 }catch (IOException e) {
@@ -164,7 +169,9 @@ class ClientHandler extends Thread {
                 }
 
                 try {
+                    System.out.println("Closing connection...");
                     dataSocket.close();
+                    System.out.println("Connection closed.");
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -221,7 +228,7 @@ class ClientHandler extends Thread {
             }
 
             try {
-                clientCommand = inFromClient.readLine();
+                fromClient = inFromClient.readLine();
 
             } catch (IOException ioEx) {
                 System.out.println("Command Fail");
@@ -229,20 +236,11 @@ class ClientHandler extends Thread {
 
             //This should get the next command and port that we want the data line to be on.
             //Then it loops to run that next command.
-            tokens = new StringTokenizer(clientCommand);
+            tokens = new StringTokenizer(fromClient);
             port = Integer.parseInt(tokens.nextToken());
             clientCommand = tokens.nextToken();
         }
 
-    }
-
-    private static void sendBytes(FileInputStream fs, DataOutputStream data) throws Exception {
-        byte[] buffer = new byte[1024];
-        int bytes = 0;
-
-        while ((bytes = fs.read(buffer)) != -1) {
-            data.write(buffer, 0, bytes);
-        }
     }
 
 }
