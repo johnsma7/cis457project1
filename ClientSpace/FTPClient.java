@@ -1,5 +1,3 @@
-package ClientSpace;
-
 import java.io.*;
 import java.net.*;
 import java.util.*;
@@ -16,27 +14,42 @@ class FTPClient {
     public static void main(String argv[]) throws Exception {
         String sentence;
         String modifiedSentence;
+	BufferedReader inFromUser=null;
+	StringTokenizer tokens=null;
         boolean isOpen = true;
         boolean clientgo = true;
-        int port = 12002, port1 = 0;
+	boolean valid = false;
+        int port = 0;
+       	int port1 = 0;
 
-        BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
-        System.out.println("Enter connect <server name> <port>");
-        sentence = inFromUser.readLine();
-        StringTokenizer tokens = new StringTokenizer(sentence);
+	while(!valid){
+        	inFromUser = new BufferedReader(new InputStreamReader(System.in));
+        	System.out.println("Enter connect <server name> <port>");
+        	sentence = inFromUser.readLine();
+        	tokens = new StringTokenizer(sentence);
 
-        if (sentence.startsWith("connect")) {
-            if(tokens.countTokens() < 2){
-                System.out.println("Improper format");
-                throw new NoSuchElementException();
+        	if (sentence.startsWith("connect")) {
+            		if(tokens.countTokens() != 3){
+                		System.out.println("Improper format");
+			}else{
+				String[] temp = sentence.split(" ");
+				if(Integer.parseInt(temp[2]) > 1024){
+					valid = true;
+				}else{
+					System.out.println("Port must be greater than 1024.");
+				}
 
-            }
-
-            String serverName = tokens.nextToken(); // pass the connect command
-            serverName = tokens.nextToken();
-            port1 = Integer.parseInt(tokens.nextToken());
-            serverName = "127.0.0.1";
-            System.out.println("You are connected to " + serverName);
+			}	
+		}else{
+			System.out.println("Improper Format.");
+		}
+	}
+          String serverName = tokens.nextToken(); // pass the connect command
+          serverName = tokens.nextToken();
+          port1 = Integer.parseInt(tokens.nextToken());
+          System.out.println("You are connected to " + serverName);
+	  Socket ControlSocket = new Socket(serverName, port1);//was serverName, port1
+	  port = port1+ 1;
             System.out.println("");
             System.out.println("Choose from the following commands: ");
             System.out.println("list: supplies a list of files from the current server directory");
@@ -44,9 +57,7 @@ class FTPClient {
             System.out.println("stor: <filename.txt> passes the filename and stores it on the server side");
             System.out.println("quit: closes the client connection");
 
-            Socket ControlSocket = new Socket(serverName, port1);//was serverName, port1
-            while (isOpen && clientgo) {
-                System.out.println("loop top");
+                        while (isOpen && clientgo) {
                 DataOutputStream outToServer = new DataOutputStream(ControlSocket.getOutputStream());
 
                 // DataInputStream inFromServer = new DataInputStream(new BufferedInputStream(ControlSocket.getInputStream()));
@@ -87,7 +98,7 @@ class FTPClient {
 
                 } else if (sentence.startsWith("retr: ")) {
                     //If the user wants to retrieve a file from the server.
-
+		    System.out.println("Downloading file from server ...");
                     outToServer.writeBytes(port + " " + sentence + " " +'\n');
                     ServerSocket welcomeData = new ServerSocket(port);
                     Socket dataSocket = welcomeData.accept();
@@ -103,7 +114,7 @@ class FTPClient {
                     String statusCode = inFromServer.readLine();
 
                     if (statusCode.equals("200 OK")){
-                        System.out.println("200 OK");
+                        System.out.println("File Downloaded!");
 
                         /*
                         These lines are for testing when the client and server are in the same directory.*/
@@ -129,13 +140,12 @@ class FTPClient {
                     } else if (statusCode.equals("550")) {
                         dataSocket.close();
                         welcomeData.close();
-                        System.out.println("\nFile doesn't exist.\nWhat would you like to do next: \n list: || retr: file.txt || stor: file.txt || quit: ");
                     } else {
                         System.out.println("Something has gone wrong..." + statusCode);
                         dataSocket.close();
                         welcomeData.close();
                     }
-
+                   System.out.println("\nWhat would you like to do next: \n retr: file.txt ||stor: file.txt  || quit: ");
 
                 } else if (sentence.startsWith("stor: ")) {
                     //If the user wants to store a file on the server
@@ -155,7 +165,8 @@ class FTPClient {
                     }
 
                     if (exists){
-                        System.out.println("exists");
+			System.out.println("");
+                        System.out.println("Uploading file to server...");
                         File f = new File(fileName);
                         BufferedReader br = new BufferedReader(new FileReader(f));
 
@@ -164,25 +175,24 @@ class FTPClient {
                         Socket dataSocket = welcomeData.accept();
                         DataOutputStream dataOutToServer = new DataOutputStream(dataSocket.getOutputStream());
 
-                        System.out.println(dataSocket.isConnected());
-
                         String fileLine = br.readLine();
-                        System.out.println(fileLine);
                         while(fileLine != null){
 
                             dataOutToServer.writeBytes(fileLine + "\n");
                             fileLine = br.readLine();
-                            System.out.println(fileLine);
                         }
 
                         dataSocket.close();
                         welcomeData.close();
                         br.close();
 
-                    } else {
-                        System.out.println("\nFile doesn't exist.\nWhat would you like to do next: \n list: || retr: file.txt || stor: file.txt || quit: ");
-                    }
+			System.out.println("File uploaded!");
 
+                    }else{
+
+                        System.out.println("\nFile doesn't exist.");
+		    }
+                    System.out.println("\nWhat would you like to do next: \n retr: file.txt ||stor: file.txt  || quit: ");
 
                 } else if (sentence.startsWith("quit:")) {
                     //If the user wants to end the application
@@ -198,9 +208,6 @@ class FTPClient {
             }
 
             ControlSocket.close();
-        }
-        else{
-            System.out.println("Improper input");
-        }
+
     }
 }
