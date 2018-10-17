@@ -1,3 +1,5 @@
+package ClientSpace;
+
 import java.io.*;
 import java.net.*;
 import java.util.*;
@@ -30,25 +32,25 @@ class FTPClient {
 
             }
 
-	    String serverName = tokens.nextToken(); // pass the connect command
+            String serverName = tokens.nextToken(); // pass the connect command
             serverName = tokens.nextToken();
             port1 = Integer.parseInt(tokens.nextToken());
             serverName = "127.0.0.1";
             System.out.println("You are connected to " + serverName);
-	    System.out.println("");
-	    System.out.println("Choose from the following commands: ");
-	    System.out.println("list: supplies a list of files from the current server directory");
-	    System.out.println("retr: <filename.txt> retrieves the file if it is in the current server directory");
-	    System.out.println("stor: <filename.txt> passes the filename and stores it on the server side");
-	    System.out.println("quit: closes the client connection");
+            System.out.println("");
+            System.out.println("Choose from the following commands: ");
+            System.out.println("list: supplies a list of files from the current server directory");
+            System.out.println("retr: <filename.txt> retrieves the file if it is in the current server directory");
+            System.out.println("stor: <filename.txt> passes the filename and stores it on the server side");
+            System.out.println("quit: closes the client connection");
 
             Socket ControlSocket = new Socket(serverName, port1);//was serverName, port1
             while (isOpen && clientgo) {
                 System.out.println("loop top");
                 DataOutputStream outToServer = new DataOutputStream(ControlSocket.getOutputStream());
 
-               // DataInputStream inFromServer = new DataInputStream(new BufferedInputStream(ControlSocket.getInputStream()));
-                	BufferedReader inFromServer = new BufferedReader(new InputStreamReader(ControlSocket.getInputStream()));
+                // DataInputStream inFromServer = new DataInputStream(new BufferedInputStream(ControlSocket.getInputStream()));
+                BufferedReader inFromServer = new BufferedReader(new InputStreamReader(ControlSocket.getInputStream()));
                 sentence = inFromUser.readLine();
 
 
@@ -78,14 +80,14 @@ class FTPClient {
                         System.out.println(s);
                     }
 
-		    System.out.println("(End of files)");
+                    System.out.println("(End of files)");
                     welcomeData.close();
                     dataSocket.close();
                     System.out.println("\nWhat would you like to do next: \n retr: file.txt ||stor: file.txt  || quit: ");
 
                 } else if (sentence.startsWith("retr: ")) {
                     //If the user wants to retrieve a file from the server.
-                 
+
                     outToServer.writeBytes(port + " " + sentence + " " +'\n');
                     ServerSocket welcomeData = new ServerSocket(port);
                     Socket dataSocket = welcomeData.accept();
@@ -104,11 +106,11 @@ class FTPClient {
                         System.out.println("200 OK");
 
                         /*
-                        These lines are for testing when the client and server are in the same directory.
+                        These lines are for testing when the client and server are in the same directory.*/
                         String newFileName = fileName.replaceFirst("[.][^.]+$", "");
-                        File f = new File(newFileName + 1 + ".txt");*/
+                        File f = new File(newFileName + 1 + ".txt");
 
-                        File f = new File(fileName);
+                        //File f = new File(fileName);
                         bw = new BufferedWriter(new FileWriter(f));
 
                         String fileLine = inData.readLine();
@@ -182,11 +184,11 @@ class FTPClient {
                     }
 
 
-                } else if (sentence.startsWith("quit: ")) {
+                } else if (sentence.startsWith("quit:")) {
                     //If the user wants to end the application
                     outToServer.writeBytes(port + " " +sentence + " " + '\n');
                     System.out.println("Closing connection...");
-		    System.out.println("Terminated");
+                    System.out.println("Terminated");
                     isOpen = false;
                 } else {
                     //If invalid input is given

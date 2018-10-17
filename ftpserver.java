@@ -142,6 +142,7 @@ class ClientHandler extends Thread {
                     if (exists){
                         outToClient.writeBytes("200 OK\n");
                         System.out.println("Sent 200 OK"); //Debugging line
+
                         File f = new File(fileName);
                         BufferedReader input = new BufferedReader(new FileReader(f));
 
@@ -164,6 +165,7 @@ class ClientHandler extends Thread {
                     }
                 }catch (IOException e) {
                     System.out.println("IOException for retr:");
+                    e.printStackTrace();
 
                 }
 
