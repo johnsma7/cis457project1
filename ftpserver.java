@@ -1,3 +1,4 @@
+import java.awt.*;
 import java.io.*;
 import java.net.*;
 import java.util.*;
@@ -65,31 +66,31 @@ class ClientHandler extends Thread {
 
     public void run()
     {
-            String frstln;
-            int port;
-            int port1 = 12002;
+        String frstln;
+        int port;
+        int port1 = 12002;
 
-            String clientCommand;
-            byte[] data;
-            File curDir = new File(".");
-            File[] fileList = curDir.listFiles();
+        String clientCommand;
+        byte[] data;
+        File curDir = new File(".");
+        File[] fileList = curDir.listFiles();
 
-            try {
-                //outToClient.writeBytes("" + dataPort);
-                fromClient = inFromClient.readLine();
-            } catch (IOException ioEx) {
-                System.out.println("Unable to set up port!");
-            }
+        try {
+            //outToClient.writeBytes("" + dataPort);
+            fromClient = inFromClient.readLine();
+        } catch (IOException ioEx) {
+            System.out.println("Unable to set up port!");
+        }
 
-            StringTokenizer tokens = new StringTokenizer(fromClient);
-            frstln = tokens.nextToken();
-            port = Integer.parseInt(frstln);
-            clientCommand = tokens.nextToken();
+        StringTokenizer tokens = new StringTokenizer(fromClient);
+        frstln = tokens.nextToken();
+        port = Integer.parseInt(frstln);
+        clientCommand = tokens.nextToken();
+        System.out.println(clientCommand);//Debugging line remove later
+
+        while (true) {
+
             System.out.println(clientCommand);//Debugging line remove later
-
-            while (true) {
-
-                System.out.println(clientCommand);//Debugging line remove later
 
             if (clientCommand.equals("list:")) {
                 try {
@@ -116,8 +117,8 @@ class ClientHandler extends Thread {
                     System.out.println("Unable to set up port!131");
                 }
 
-                    System.out.println("Data Socket closed");
-                }
+                System.out.println("Data Socket closed");
+            }
 
             if (clientCommand.equals("retr:")) {
                 try{
@@ -172,6 +173,7 @@ class ClientHandler extends Thread {
                     }
                 }catch (IOException e) {
                     System.out.println("IOException for retr:");
+
                 }
 
                 try {
@@ -183,47 +185,40 @@ class ClientHandler extends Thread {
                 }
             }
 
-                if (clientCommand.equals("stor")) {
-                    //saves the file to the current directory.
-                    try {
-                        dataSocket = new Socket(client.getInetAddress(), port);
+            if (clientCommand.equals("stor:")) {
+                //saves the file to the current directory.
+                try {
+                    dataSocket = new Socket(client.getInetAddress(), port);
+                    BufferedReader dataInFromClient = new BufferedReader(new InputStreamReader(dataSocket.getInputStream()));
 
-                        System.out.println("Unable to set up port!");
+                    System.out.println(dataSocket.isConnected());
 
-                        dataFromClient = new DataInputStream(dataSocket.getInputStream());
+                    String fileName = tokens.nextToken();
 
-                        System.out.println("Unable to set up port!");
+                    System.out.println(fileName);
 
-                        byte[] b = new byte[1024];
-                        String fileName = tokens.nextToken(); // This assumes we send the file name via the command line right after stor:
+                    String newFileName = fileName.replaceFirst("[.][^.]+$", "");
+                    File f = new File(newFileName + 1 + ".txt");
 
-                        out = new FileOutputStream(fileName);
+                    //File f = new File(fileName);
+                    BufferedWriter bw = new BufferedWriter(new FileWriter(f));
 
-                        System.out.println("Unable to set up port!");
+                    String fileLine = dataInFromClient.readLine();
 
-                        dataFromClient.read(b);
-
-                        System.out.println("Unable to set up port!");
-
-
-                        out.write(b);
-
-                        System.out.println("Unable to set up port!");
-
-
-                        out.close();
-                        System.out.println("Unable to set up port!");
-                        dataSocket.close();
-                        System.out.println("Unable to set up port!");
-                        outToClient.writeBytes("File stored.");
-
-                    } catch (IOException ioEx) {
-                        System.out.println("Unable to set up port!");
+                    while(fileLine != null){
+                        bw.write(fileLine + "\n");
+                        fileLine = dataInFromClient.readLine();
                     }
+                    dataSocket.close();
+                    bw.close();
+
+                } catch (IOException e) {
+                    System.out.println("Port couldn't be made.");
                 }
-                if (clientCommand.equals("quit:")) {
-                    System.out.println("Closing the server...");
-                    System.exit(1);
+            }
+            if (clientCommand.equals("quit:")) {
+                System.out.println("Closing the server...");
+                System.exit(1);
 
 
                 try {
